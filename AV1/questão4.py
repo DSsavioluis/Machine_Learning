@@ -7,25 +7,16 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
-
-#Carregue o dataset. Se houver o dataset atualizado, carregue o atualizado.
-flavors_of_cacao = pd.read_csv('flavors_of_cacao_ajustado.csv')
-
-
-#Transforma a variável "Rating" em uma variável categórica
-rating_bins = [0, 2.5, 3.5, 4.0, 5.0]
-rating_labels = ['ruim', 'regular', 'bom', 'excelente']
-flavors_of_cacao['Rating_cat'] = pd.cut(flavors_of_cacao['Rating'], bins=rating_bins, labels=rating_labels)
-
+# Carregue o dataset. Se houver o dataset atualizado, carregue o atualizado.
+df = pd.read_csv(r'C:\Users\Sávio\Downloads\flavors_of_cacao_ajustado.csv')
 
 #Normalize com a melhor normalização o conjunto de dados se houver melhoria.
 
-X = flavors_of_cacao.drop(['Rating', 'Rating_cat'], axis=1)
-y = flavors_of_cacao['Rating_cat']
+X = df.drop(['Rating_Categories'], axis=1)
+y = df['Rating_Categories']
 
 scaler = StandardScaler()
 X_norm = scaler.fit_transform(X)
-
 
 X_train, X_test, y_train, y_test = train_test_split(X_norm, y, test_size=0.3, random_state=42)
 
@@ -33,7 +24,6 @@ knn = KNeighborsClassifier()
 
 knn.fit(X_train, y_train)
 accuracia_var = knn.score(X_test, y_test)
-
 
 # Plote o gráfico com o a indicação do melhor k.
 neighbors = np.arange(1, 15)

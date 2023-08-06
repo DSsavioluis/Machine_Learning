@@ -6,47 +6,36 @@ import numpy as np
 import pandas as pd
 
 # Carregue o dataset. Se houver o dataset atualizado, carregue o atualizado.
-df = pd.read_csv('flavors_of_cacao_ajustado.csv')
+df = pd.read_csv(r'C:\Users\Sávio\Downloads\flavors_of_cacao_ajustado.csv')
 
-# Transforme a variável de saída (Rating) em classes.
-df['class'] = pd.cut(df['Rating'], bins=[0, 2.99, 3.49, 3.99, 4.49, 4.99, 5.49, 5.99], labels=[0, 1, 2, 3, 4, 5, 6])
-
-# Remova a coluna Rating do dataset.
-df.drop('Rating', axis=1, inplace=True)
 
 # Normalize o conjunto de dados com normalização logarítmica e verifique a acurácia do knn.
-numeric_cols = df.select_dtypes(include="number").columns
+df_log_normalized = np.log(df.drop(['Rating_Categories'], axis=1) + 1)
 
-df[numeric_cols] = df[numeric_cols].applymap(lambda x: np.log(x) if x > 0 else x)
-
-df = df.replace([np.nan, np.inf, -np.inf], np.nan).dropna()
-
-X = df[numeric_cols].values
-y = df['class'].values.astype(int)
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, random_state=42)
-
-knn = KNeighborsClassifier()
-knn.fit(X_train, y_train)
-
-score_log = knn.score(X_test, y_test)
-print('Norm log:', score_log)
+X_train_log, X_test_log, y_train, y_test = train_test_split(df_log_normalized, df['Rating_Categories'], test_size=0.3, random_state=42)
 
 # Normalize o conjunto de dados com normalização de media zero e variância unitária e e verifique a acurácia do knn.
+
 scaler = StandardScaler()
+df_standardized = scaler.fit_transform(df.drop(['Rating_Categories'], axis=1))
+X_train_std, X_test_std, y_train, y_test = train_test_split(df_standardized, df['Rating_Categories'], test_size=0.3, random_state=42)
 
-X_norm = pd.DataFrame(scaler.fit_transform(X), columns=numeric_cols)
 
-X_train, X_test, y_train, y_test = train_test_split(X_norm, y, test_size=0.3, random_state=42)
-knn = KNeighborsClassifier()
-knn.fit(X_train, y_train)
-accuracy = knn.score(X_test, y_test)
-print("Acurácia do modelo KNN:", accuracy)
+# Ajuste o modelo KNN aos dados de treinamento para ambas as versões dos dados
+knn_log = KNeighborsClassifier()
+knn_log.fit(X_train_log, y_train)
+
+knn_std = KNeighborsClassifier()
+knn_std.fit(X_train_std, y_train)
+
+# Avalie o modelo nos dados de teste para ambas as versões dos dados
+accuracy_log = knn_log.score(X_test_log, y_test)
+accuracy_std = knn_std.score(X_test_std, y_test)
 
 # Print as duas acuracias lado a lado para comparar.
 
-print("Acuracia da normalização logaritmica:", score_log)
-print("Acurácia da normalização de media zero:", accuracy)
+print("Acuracia da normalização logaritmica:", accuracy_log)
+print("Acurácia da normalização de media zero:", accuracy_std)
 
 
 
